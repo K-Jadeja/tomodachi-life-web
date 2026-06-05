@@ -24,6 +24,120 @@ streamed once from the Hugging Face CDN and then cached by the browser.
 
 ---
 
+## About this project — an AI-agent design test
+
+**This codebase is a test.** I wanted to see whether an AI coding agent
+(Claude, via Claude Code) could autonomously design and build a small
+game clone with **minimal hand-holding from me**. I gave it a one-line
+brief — *"make a Tomodachi Life–style browser game"* — and let it work.
+
+Everything in this repo past the initial scaffolding was written by the
+agent: architecture, file layout, the engine/game split, the iso
+projection math, the cone-tree border, the grid-walking algorithm, the
+LLM wiring, the heart's-wishes system, the day/night cycle, the
+Mii-style procedural sprites, the save format, the HUD, the character
+editor, the dialogue bubbles, the procedural audio, the build scripts,
+the README, the CHANGELOG. I steered and gave feedback ("that doesn't
+look like B/W, go read the article and the images") but the
+implementation was the agent's.
+
+The point of the test wasn't to ship a polished game — it was to see
+how far an agent could get on a multi-system project, and to find out
+where it breaks down. Short version: it got surprisingly far on the
+isolated bits (a single visual element, a single algorithm, a single
+refactor) and noticeably less far on cross-system coherence (making the
+LLM, the AI driver, the schedule, the relationships, the wishes, and
+the memory all agree with each other at the same time on the same
+state). The B/W visual rebuild in particular took several rounds of
+*"read the article again, look at the images again, that's not right
+yet"* before the iso projection felt right.
+
+### What the agent did, roughly
+
+1. **Scaffolded the project** — Vite + TypeScript 5 strict, PixiJS v8,
+   a tiny pub/sub store, a 480×270 base canvas with integer scaling.
+2. **Built the sprite composer** — 7-layer Mii-style characters
+   (head, eyes, mouth, hair, body, outfit, accessory) drawn
+   procedurally with palette tints. No PNGs, no SVGs, all shapes.
+3. **Wired 5 locations** — apartment, beach, park, café, town — each
+   with its own background draw function and ground level.
+4. **Added the LLM layer** — opt-in, lazy-loaded, falls back to
+   scripted barks if the model isn't available. Uses Gemma 4 via
+   MediaPipe Tasks GenAI.
+5. **TTS + Mii voice** — `SpeechSynthesisUtterance` with per-character
+   pitch / rate variance so each Tomodachi has a distinct voice.
+6. **Save/load** — IndexedDB with a typed schema, auto-save every
+   30 s, save-on-close, **Continue** on the title screen.
+7. **Engine/Game split** — refactored from one flat `src/` tree into
+   `src/engine/` (open-source, no game imports) and `src/game/`
+   (private IP, depends on the engine). The engine exposes a tiny
+   `registerLocation(id, drawFn, def)` API. The game never bleeds
+   into the engine.
+8. **Heart's Wishes** — every Tomodachi gets a hidden personal goal
+   the player must discover through observation and fulfill. 6
+   starter wishes, one per archetype (Loner, Performer, Foodie,
+   Scholar, Adventurer, Romantic). Hints unlock as conditions are
+   met; the wish title is revealed after 3 of 4 hints.
+9. **Two-position grid walking** — Nanousis / Pokémon pattern. Each
+   step is one tile, with smooth lerp between cells, hand-painted
+   collision mask, greedy 4-direction pathfinding with wall-slide
+   and back-step for dead-end escape. Building entry/exit teleports
+   the character to the matching interior.
+10. **B/W-style overworld rebuild** — true 45° iso projection baked
+    into the drawing code (not a `worldLayer` squish), 3D-projected
+    box buildings with gable roofs, cone-shaped Christmas-tree
+    border at the top, smooth tan dirt path, water strip with a
+    wooden bridge at the bottom, wooden sign posts in front of each
+    building. See `CHANGELOG.md` for the full before/after.
+
+### What the agent got right
+
+- **Visual elements in isolation.** A single cone tree, a single
+  building, a single path — these come out well, and the
+  "is it B/W?" check can be done in a single screenshot.
+- **The engine/game split.** Decoupling the reusable parts from
+  the IP, and inventing the `registerLocation` inversion so the
+  engine never imports game content, was the agent's idea and
+  it's a good one.
+- **Type discipline.** TypeScript strict, no `any`, no implicit
+  nulls. The whole thing builds clean with `tsc --noEmit`.
+- **The build system.** Vite config with manual chunks (LLM and
+  PixiJS in their own bundles), COOP/COEP headers for Vercel,
+  itchio zip script — all there.
+
+### What the agent got less right
+
+- **Cross-system state coherence.** The LLM context, the AI
+  driver, the schedule, the relationships, the wishes, and the
+  memory all read from the same state, but the agent struggled
+  to keep them all consistent. A few state updates are visibly
+  out of sync on the live build.
+- **B/W visual fidelity.** The first attempt was a "B/W
+  inspired" top-down world with lampposts, cobble paths, and
+  flowers. The agent's reading of the reference material was
+  surface-level. It took explicit "go read the actual article,
+  look at the actual images" feedback to get the iso projection
+  right.
+- **Polish.** The dialogue, the schedule, the wish discovery UI,
+  and the relationship system are all in "tech demo" state. They
+  exist and they work, but they don't feel like a game yet.
+
+### Takeaway
+
+AI agents are good at *building isolated systems quickly* and
+*getting unstuck from a specific error*, and they're bad at
+*holding a coherent vision across an entire multi-system
+project* without constant steering. Use them as a fast
+implementation partner, not as a designer. The interesting
+decisions (the heart's-wishes hook, the engine split, the iso
+projection vs. squish tradeoff) still need a human.
+
+---
+
+
+
+---
+
 ## Quick start (local)
 
 ```bash
