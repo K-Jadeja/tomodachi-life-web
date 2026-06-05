@@ -27,9 +27,10 @@ streamed once from the Hugging Face CDN and then cached by the browser.
 ## About this project — an AI-agent design test
 
 **This codebase is a test.** I wanted to see whether an AI coding agent
-(Claude, via Claude Code) could autonomously design and build a small
-game clone with **minimal hand-holding from me**. I gave it a one-line
-brief — *"make a Tomodachi Life–style browser game"* — and let it work.
+(**MiniMax M3**, via Claude Code) could autonomously design and build a
+small game clone with **minimal hand-holding from me**. I gave it a
+one-line brief — *"make a Tomodachi Life–style browser game"* — and
+let it work.
 
 Everything in this repo past the initial scaffolding was written by the
 agent: architecture, file layout, the engine/game split, the iso
